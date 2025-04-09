@@ -1,0 +1,15 @@
+# Test files
+test/
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
