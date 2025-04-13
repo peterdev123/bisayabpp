@@ -9,6 +9,22 @@ class Program extends AST {
   }
 }
 
+class Boolean extends AST {
+  constructor(token) {
+    super();
+    this.token = token;
+    this.value = token.value;
+  }
+}
+
+class UnaryOp extends AST {
+  constructor(op, expr) {
+    super();
+    this.token = this.op = op;
+    this.expr = expr;
+  }
+}
+
 class Statement extends AST {}
 
 class VarDeclaration extends Statement {
@@ -28,6 +44,15 @@ class PrintStatement extends Statement {
 }
 
 class BinOp extends AST {
+  constructor(left, op, right) {
+    super();
+    this.left = left;
+    this.token = this.op = op;
+    this.right = right;
+  }
+}
+
+class CompareOp extends AST {
   constructor(left, op, right) {
     super();
     this.left = left;
@@ -119,7 +144,7 @@ class Parser {
   varDeclaration() {
     this.eat(TokenType.MUGNA);
     const varType = this.currentToken.type;
-    this.eat(varType); // NUMERO, LETRA, or TINUOD
+    this.eat(varType);
     const name = this.currentToken.value;
     this.eat(TokenType.IDENTIFIER);
     this.eat(TokenType.ASSIGN);
@@ -129,10 +154,11 @@ class Parser {
 
   printStatement() {
     this.eat(TokenType.IPAKITA);
+    this.eat(TokenType.COLON);
     const expressions = [this.expr()];
 
-    while (this.currentToken.type === TokenType.PLUS) {
-      this.eat(TokenType.PLUS);
+    while (this.currentToken.type === TokenType.CONCATENATOR) {
+      this.eat(TokenType.CONCATENATOR);
       expressions.push(this.expr());
     }
 
@@ -150,6 +176,21 @@ class Parser {
         this.eat(TokenType.MINUS);
       }
       node = new BinOp(node, token, this.term());
+    }
+
+    if (
+      [
+        TokenType.EQUALS,
+        TokenType.NOT_EQUALS,
+        TokenType.GREATER_THAN,
+        TokenType.LESS_THAN,
+        TokenType.GREATER_EQUALS,
+        TokenType.LESS_EQUALS,
+      ].includes(this.currentToken.type)
+    ) {
+      const token = this.currentToken;
+      this.eat(token.type);
+      node = new CompareOp(node, token, this.term());
     }
 
     return node;
@@ -180,6 +221,11 @@ class Parser {
   factor() {
     const token = this.currentToken;
 
+    if (token.type === TokenType.DILI) {
+      this.eat(TokenType.DILI);
+      return new UnaryOp(token, this.factor());
+    }
+
     switch (token.type) {
       case TokenType.NUMBER:
         this.eat(TokenType.NUMBER);
@@ -187,6 +233,9 @@ class Parser {
       case TokenType.STRING:
         this.eat(TokenType.STRING);
         return new String(token);
+      case TokenType.BOOLEAN:
+        this.eat(TokenType.BOOLEAN);
+        return new Boolean(token);
       case TokenType.IDENTIFIER:
         this.eat(TokenType.IDENTIFIER);
         return new Var(token);
@@ -202,7 +251,10 @@ module.exports = {
   VarDeclaration,
   PrintStatement,
   BinOp,
+  CompareOp,
+  UnaryOp,
   Num,
   String,
+  Boolean,
   Var,
 };

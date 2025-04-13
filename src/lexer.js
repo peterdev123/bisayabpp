@@ -1,5 +1,3 @@
-// Lexer for Bisaya++ Programming Language
-
 class Token {
   constructor(type, value) {
     this.type = type;
@@ -13,6 +11,8 @@ const TokenType = {
   KATAPUSAN: "KATAPUSAN",
   MUGNA: "MUGNA",
   IPAKITA: "IPAKITA",
+  UG: "UG",
+  DILI: "DILI",
 
   // Data Types
   NUMERO: "NUMERO",
@@ -26,13 +26,21 @@ const TokenType = {
   DIVIDE: "/",
   MODULO: "%",
   ASSIGN: "=",
+  EQUALS: "==",
+  NOT_EQUALS: "<>",
+  GREATER_THAN: ">",
+  LESS_THAN: "<",
+  GREATER_EQUALS: ">=",
+  LESS_EQUALS: "<=",
 
   // Others
   IDENTIFIER: "IDENTIFIER",
   NUMBER: "NUMBER",
   STRING: "STRING",
   NEWLINE: "NEWLINE",
+  COLON: ":",
   EOF: "EOF",
+  CONCATENATOR: "&",
 };
 
 class Lexer {
@@ -70,7 +78,6 @@ class Lexer {
       this.advance();
     }
 
-    // Check for keywords
     switch (result.toUpperCase()) {
       case "SUGOD":
         return new Token(TokenType.SUGOD, result);
@@ -86,6 +93,14 @@ class Lexer {
         return new Token(TokenType.LETRA, result);
       case "TINUOD":
         return new Token(TokenType.TINUOD, result);
+      case "UG":
+        return new Token(TokenType.UG, result);
+      case "DILI":
+        return new Token(TokenType.DILI, result);
+      case "TINUOD":
+        return new Token(TokenType.BOOLEAN, true);
+      case "SAYOP":
+        return new Token(TokenType.BOOLEAN, false);
       default:
         return new Token(TokenType.IDENTIFIER, result);
     }
@@ -93,40 +108,38 @@ class Lexer {
 
   getString() {
     let result = "";
-    this.advance(); // Skip the opening quote
+    this.advance();
     while (this.currentChar && this.currentChar !== '"') {
       result += this.currentChar;
       this.advance();
     }
-    this.advance(); // Skip the closing quote
+    this.advance();
     return new Token(TokenType.STRING, result);
   }
 
   getNextToken() {
     while (this.currentChar) {
-      // Handle whitespace and newlines
       if (/\s/.test(this.currentChar)) {
         this.skipWhitespace();
         continue;
       }
 
-      // Handle numbers
       if (/\d/.test(this.currentChar)) {
         return this.getNumber();
       }
 
-      // Handle identifiers and keywords
       if (/[a-zA-Z_]/.test(this.currentChar)) {
         return this.getIdentifier();
       }
 
-      // Handle strings
       if (this.currentChar === '"') {
         return this.getString();
       }
 
-      // Handle operators
       switch (this.currentChar) {
+        case ":":
+          this.advance();
+          return new Token(TokenType.COLON, ":");
         case "+":
           this.advance();
           return new Token(TokenType.PLUS, "+");
@@ -144,7 +157,31 @@ class Lexer {
           return new Token(TokenType.MODULO, "%");
         case "=":
           this.advance();
+          if (this.currentChar === "=") {
+            this.advance();
+            return new Token(TokenType.EQUALS, "==");
+          }
           return new Token(TokenType.ASSIGN, "=");
+        case "&":
+          this.advance();
+          return new Token(TokenType.CONCATENATOR, "&");
+        case "<":
+          this.advance();
+          if (this.currentChar === ">") {
+            this.advance();
+            return new Token(TokenType.NOT_EQUALS, "<>");
+          } else if (this.currentChar === "=") {
+            this.advance();
+            return new Token(TokenType.LESS_EQUALS, "<=");
+          }
+          return new Token(TokenType.LESS_THAN, "<");
+        case ">":
+          this.advance();
+          if (this.currentChar === "=") {
+            this.advance();
+            return new Token(TokenType.GREATER_EQUALS, ">=");
+          }
+          return new Token(TokenType.GREATER_THAN, ">");
       }
 
       throw new Error(`Invalid character: ${this.currentChar}`);

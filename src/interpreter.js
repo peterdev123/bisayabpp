@@ -18,7 +18,6 @@ class Interpreter {
   visitVarDeclaration(node) {
     const value = this.visit(node.value);
 
-    // Type checking
     switch (node.varType) {
       case TokenType.NUMERO:
         if (typeof value !== "number") {
@@ -63,6 +62,8 @@ class Interpreter {
         return left / right;
       case TokenType.MODULO:
         return left % right;
+      case TokenType.UG:
+        return left && right;
       default:
         this.error(`Unknown operator ${node.op.type}`);
     }
@@ -82,6 +83,42 @@ class Interpreter {
       this.error(`Undefined variable '${node.value}'`);
     }
     return value;
+  }
+
+  visitBoolean(node) {
+    return node.value;
+  }
+
+  visitUnaryOp(node) {
+    const operand = this.visit(node.expr);
+    switch (node.op.type) {
+      case TokenType.DILI:
+        return !operand;
+      default:
+        this.error(`Unknown unary operator ${node.op.type}`);
+    }
+  }
+
+  visitCompareOp(node) {
+    const left = this.visit(node.left);
+    const right = this.visit(node.right);
+
+    switch (node.op.type) {
+      case TokenType.EQUALS:
+        return left === right;
+      case TokenType.NOT_EQUALS:
+        return left !== right;
+      case TokenType.GREATER_THAN:
+        return left > right;
+      case TokenType.LESS_THAN:
+        return left < right;
+      case TokenType.GREATER_EQUALS:
+        return left >= right;
+      case TokenType.LESS_EQUALS:
+        return left <= right;
+      default:
+        this.error(`Unknown comparison operator ${node.op.type}`);
+    }
   }
 
   visit(node) {
