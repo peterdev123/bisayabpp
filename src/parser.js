@@ -85,6 +85,14 @@ class Var extends AST {
   }
 }
 
+class EscapeSequence extends AST {
+  constructor(token) {
+    super();
+    this.token = token;
+    this.value = token.value;
+  }
+}
+
 class Parser {
   constructor(lexer) {
     this.lexer = lexer;
@@ -122,6 +130,11 @@ class Parser {
         this.currentToken.type === TokenType.IPAKITA
       ) {
         statements.push(this.statement());
+      } else if (
+        this.currentToken.type === TokenType.NEWLINE ||
+        this.currentToken.type === TokenType.DOLLAR
+      ) {
+        this.eat(this.currentToken.type);
       } else {
         this.currentToken = this.lexer.getNextToken();
       }
@@ -193,6 +206,12 @@ class Parser {
       node = new CompareOp(node, token, this.term());
     }
 
+    if (this.currentToken.type === TokenType.ESCAPE_SEQUENCE) {
+      const token = this.currentToken;
+      this.eat(TokenType.ESCAPE_SEQUENCE);
+      node = new EscapeSequence(token);
+    }
+
     return node;
   }
 
@@ -224,6 +243,11 @@ class Parser {
     if (token.type === TokenType.DILI) {
       this.eat(TokenType.DILI);
       return new UnaryOp(token, this.factor());
+    }
+
+    if (token.type === TokenType.ESCAPE_SEQUENCE) {
+      this.eat(TokenType.ESCAPE_SEQUENCE);
+      return new EscapeSequence(token);
     }
 
     switch (token.type) {

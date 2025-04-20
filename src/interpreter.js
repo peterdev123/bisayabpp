@@ -77,6 +77,10 @@ class Interpreter {
     return node.value;
   }
 
+  visitEscapeSequence(node) {
+    return node.value;
+  }
+
   visitVar(node) {
     const value = this.symbolTable[node.value];
     if (value === undefined) {

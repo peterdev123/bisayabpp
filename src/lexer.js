@@ -73,7 +73,7 @@ class Lexer {
 
   getIdentifier() {
     let result = "";
-    while (this.currentChar && /[a-zA-Z_]/.test(this.currentChar)) {
+    while (this.currentChar && /[a-zA-Z_0-9]/.test(this.currentChar)) {
       result += this.currentChar;
       this.advance();
     }
@@ -106,21 +106,23 @@ class Lexer {
     }
   }
 
-  getString() {
-    let result = "";
-    this.advance();
-    while (this.currentChar && this.currentChar !== '"') {
-      result += this.currentChar;
+  skipComment() {
+    while (this.currentChar && this.currentChar !== "\n") {
       this.advance();
     }
-    this.advance();
-    return new Token(TokenType.STRING, result);
   }
 
   getNextToken() {
     while (this.currentChar) {
       if (/\s/.test(this.currentChar)) {
         this.skipWhitespace();
+        continue;
+      }
+
+      if (this.currentChar === "-" && this.input[this.position + 1] === "-") {
+        this.advance();
+        this.advance();
+        this.skipComment();
         continue;
       }
 
@@ -182,12 +184,32 @@ class Lexer {
             return new Token(TokenType.GREATER_EQUALS, ">=");
           }
           return new Token(TokenType.GREATER_THAN, ">");
+        case "[":
+          this.advance();
+          let escapeContent = "";
+          while (this.currentChar && this.currentChar !== "]") {
+            escapeContent += this.currentChar;
+            this.advance();
+          }
+          this.advance();
+          return new Token(TokenType.ESCAPE_SEQUENCE, escapeContent);
       }
 
       throw new Error(`Invalid character: ${this.currentChar}`);
     }
 
     return new Token(TokenType.EOF, null);
+  }
+
+  getString() {
+    let result = "";
+    this.advance();
+    while (this.currentChar && this.currentChar !== '"') {
+      result += this.currentChar;
+      this.advance();
+    }
+    this.advance();
+    return new Token(TokenType.STRING, result);
   }
 }
 
