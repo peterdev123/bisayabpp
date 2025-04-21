@@ -21,17 +21,17 @@ class Interpreter {
     switch (node.varType) {
       case TokenType.NUMERO:
         if (typeof value !== "number") {
-          this.error(`Expected NUMERO but got ${typeof value}`);
+          this.error(`Expected NUMERO instead got ${typeof value}`);
         }
         break;
       case TokenType.LETRA:
         if (typeof value !== "string") {
-          this.error(`Expected LETRA but got ${typeof value}`);
+          this.error(`Expected LETRA instead got ${typeof value}`);
         }
         break;
       case TokenType.TINUOD:
         if (typeof value !== "boolean") {
-          this.error(`Expected TINUOD but got ${typeof value}`);
+          this.error(`Expected TINUOD instead got ${typeof value}`);
         }
         break;
     }
